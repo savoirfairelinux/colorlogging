@@ -126,3 +126,6 @@ if __name__ == '__main__':
     formatter.setColor(logging.DEBUG, 'inverted bold blink blue')
     logger.debug('this might blink')
 
+    from pprint import pprint
+    pprint(formatter.colors)
+
