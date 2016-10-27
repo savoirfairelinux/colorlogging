@@ -1,6 +1,15 @@
 # colorlogging
 Simple color logging for Python.
 
+## Table of Contents
+
+* [Requirements](#requirements)
+* [Installation](#installation)
+* [Example](#example)
+* [Colors and Styles](#colors)
+* [Options](#options)
+* [Todo](#todo)
+
 ## Requirements
 
 Python 2.7+ (Python 3 supported).
@@ -11,94 +20,111 @@ No additional requirements.
 
 This package is not (yet?) on pypi. To install:
 
-```
+```bash
 git clone https://github.com/jbchouinard/colorlogging.git
 cd colorlogging
 pip install .
 ```
-or
 
-```
-git clone https://github.com/jbchouinard/colorlogging.git
-cp -r colorlogging/colorlogging <your project>
-```
+## Example
 
-## Usage
+colorlogging has a single class, ``ColorFormatter``.
 
-colorlogging has a single class, ColorFormatter.
-
-```
+```python
 import logging
-import colorlogging
+from colorlogging import ColorFormatter
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 handler = logging.StreamHandler()
 logger.addHandler(handler)
 
-format = "%(asctime)s %(levelname)s: #(magenta)%(message)s#(plain)"
-formatter = colorlogging.ColorFormatter(format)
+fmt = "%(asctime)s %(levelname)s: #(magenta)%(message)s"
+formatter = ColorFormatter(fmt)
 handler.setFormatter(formatter)
 
 logger.info('This will be printed in magenta!')
-logger.info('#(green)This message will be printed in green!')
 ```
-The format string is handled as usual (see logging.Formatter documentation), with one addition:
+Format strings are handled as usual (see the Formatter documentation,
+[py2](https://docs.python.org/2/library/logging.html#formatter-objects),
+[py3](https://docs.python.org/3/library/logging.html#formatter-objects)),
+with one addition:
 
-The modifier #(\<color name\>) is used to start coloring the output. The format string in this example will color
-the log message magenta.
+Style modifiers, e.g. ``#(bold green)``, are used to color output. The format
+string in the previous example will print log message in magenta.
 
-## Colors
+You can also style a message directly:
 
-\<color name\> can be one or more of the following colors or styles:
- * black
- * white
- * [light] gray
- * [light] red
- * [light] green
- * [light] yellow
- * [light] blue
- * [light] magenta
- * [light] cyan
- * [not] bold
- * [not] dim
- * [not] underlined
- * [not] blink
- * [not] inverted
- * [not] hidden
- * plain
- * default
- * normal
- * level
+```python
+logger.info('#(underlined green)This will be underlined and green!')
+```
+
+We use shell codes to color the output, so using this formatter with anything
+but a StreamHandler connected to stdout is not useful or recommended.
+
+We check if stdout is a terminal; if stdout is piped to a file or program, the
+color codes will not be printed. Support for stderr should be added in the
+future.
+
+## Colors and Styles
+
+The syntax for  modifiers is ``#([style] [color])``,
+where ``style`` and ``color`` are one of the following:
+
+| Styles               | Colors          |
+|----------------------|-----------------|
+| [not] bold           | black           |
+| [not] underlined     | white           |
+| [not] dim            | [light] gray    |
+| [not] blink          | [light] red     |
+| [not] inverted       | [light] green   |
+| [not] hidden         | [light] yellow  |
+| plain/default/normal | [light] blue    |
+|                      | [light] magenta |
+|                      | [light] cyan    |
+|                      | level           |
  
-Some of these can be combined, for example "bold red", "bold light red", etc. "red blue" will work but will result in blue output.
+Colors and styles can be combined; for example ``bold red``, ``bold light red``,
+etc.
 
-Plain, default and normal all mean the same things, they are just synonyms for convenience.
+``red blue`` will parse fine, but you'll just get blue output.  Unfortunately we
+can't do color mixing with shell codes.
 
-**level** is a special color that depends on the log level of the message. By default info is green, warning is yellow, etc.
-The most common use case would be coloring the level name.
+``plain``, ``default`` and ``normal`` all mean the same thing, they are just
+synonyms for convenience.  They clear all styles/colors.
 
-The defaults can be changed, or new levels added, with ``ColoredFormatter.setLevelColor``:
+``level`` is a special color that depends on the log level of the message.  By
+default info is green, warning is yellow, etc.  The most common use case would
+be coloring the level name:
 
+```python
+fmt = "%(asctime)s #(level)%(levelname)s#(plain): %(message)s"
+formatter = ColorFormatter(fmt)
 ```
-format = "%(asctime)s #(level)%(levelname)s#(plain): %(message)s"
-formatter = colorlogging.ColorFormatter()
-formatter.setLevelColor(logging.INFO, 'magenta')
-handler.setFormatter(formatter)
+
+Note the usage of ``plain``; without it the message would be colored too.
+
+The defaults can be changed, or new levels added, with the ``setLevelColor``
+method:
+
+```python
+formatter.setLevelColor(logging.INFO, 'inverted light cyan')
 ```
 
-# Options
+## Options
 
-ColorFormatter has two options that modify its behaviour.
+``ColorFormatter``'s behaviour depends on two options:
 
-``additive``: in additive mode, colors and styles are applied cumulatively. Otherwise, #(<color name>) modifiers clear all previous
-modifiers. The default is False. Example:
+``additive``: in additive mode, colors and styles are applied cumulatively.
+Otherwise, style modifiers clear all previous modifiers. The default is
+``False``. Example:
 
-```
+```python
 formatter = ColorFormatter(additive=True)
 handler.setFormatter(formatter)
 
-logger.info('#(bold)This is bold. #(blue)This is bold and blue. #(not bold)This is only blue.')
+logger.info('#(bold)This is bold. #(blue)This is bold and blue. #(not bold)This
+is only blue.')
 
 formatter = ColorFormatter()  # additive is False by default
 handler.setFormatter(formatter)
@@ -106,5 +132,14 @@ handler.setFormatter(formatter)
 logger.info('#(bold)This is bold. #(blue)This is only blue, not bold.')
 ```
 
-```autoclear```: True by default. Adds #(plain) at the end of every message. If set to False and #(plain) is omitted,
-the shell will continue printing in whatever style was set, past the log message.
+Negative modifiers, e.g. ``#(not bold)`` can be used in additive mode for
+complex styling.
+
+```autoclear```: adds ``#(plain)`` at the end of every message. Defaults to
+``True``.  If set to ``False`` and ``#(plain)``is omitted, the shell will
+continue printing in whatever style was set, past the log line.
+
+## Todo
+
+* Make ColorFormatter useable with stderr (only problem is that the TTY check is
+  currently hardcoded to stdout.)
