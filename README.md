@@ -8,8 +8,12 @@ git clone https://github.com/jbchouinard/colorlogging.git
 cd colorlogging
 pip install .
 ```
+or
 
-Or copy colorlogging/colorlogging to your project if you don't want to install this system-wide.
+```
+git clone https://github.com/jbchouinard/colorlogging.git
+cp -r colorlogging/colorlogging <your project>
+```
 
 ## Usage
 
