@@ -1,4 +1,6 @@
+import copy
 import logging
+import re
 
 COLORS = {
     'black': "\033[30m",
@@ -8,14 +10,14 @@ COLORS = {
     'blue': "\033[34m",
     'magenta': "\033[35m",
     'cyan': "\033[36m",
-    'light_gray': "\033[37m",
-    'dark_gray': "\033[90m",
-    'light_red': "\033[91m",
-    'light_green': "\033[92m",
-    'light_yellow': "\033[93m",
-    'light_blue': "\033[94m",
-    'light_magenta': "\033[95m",
-    'light_cyan': "\033[96m",
+    'light gray': "\033[37m",
+    'gray': "\033[90m",
+    'light red': "\033[91m",
+    'light green': "\033[92m",
+    'light yellow': "\033[93m",
+    'light blue': "\033[94m",
+    'light magenta': "\033[95m",
+    'light cyan': "\033[96m",
     'white': "\033[97m",
     'bold': "\033[1m",
     'dim': "\033[2m",
@@ -23,109 +25,70 @@ COLORS = {
     'blink': "\033[5m",
     'inverted': "\033[7m",
     'hidden': "\033[8m",
+    'plain': "\033[0m",
+    'default': "\033[0m",
+    'normal': "\033[0m",
 }
 
 
 class ColorFormatter(logging.Formatter):
-    DEFAULT_LVL_COLORS = None
+    _levelColors = {
+        logging.CRITICAL: 'bold inverted red',
+        logging.ERROR: 'bold red',
+        logging.WARNING: 'bold yellow',
+        logging.INFO: 'bold green',
+        logging.DEBUG: 'bold blue',
+    }
 
-    def __init__(self, *args, **kwargs):
-        super(ColorFormatter, self).__init__(*args, **kwargs)
-        self._lvl_colors = {}
-        if self.DEFAULT_LVL_COLORS:
-            for lvl, color in dict(self.DEFAULT_LVL_COLORS).items():
-                self.setColor(lvl, color)
+    def __init__(self, fmt=None, *args, **kwargs):
+        if not fmt:
+            fmt = '#(level)%(levelname)s#(plain): %(message)s'
+        super(ColorFormatter, self).__init__(fmt, *args, **kwargs)
+        self.levelColors = copy.deepcopy(self._levelColors)
 
     def _parse_color_name(self, color_name):
         words = color_name.split(' ')
+        while ('light' in words):
+            i = words.index('light')
+            try:
+                words = words[:i] + ['light ' + words[i+1]] + words[i+2:]
+            except IndexError:
+                raise ValueError('%s is not an accepted color.')
         try:
             code = ''.join(COLORS[word] for word in words)
         except KeyError:
-            raise ValueError(
-                'I don\'t know what color %s is. I know the colors: %s'
-                % (color_name, COLORS.keys())
-            )
+            raise ValueError('%s is not an accepted color.')
         return code
 
-    def setColor(self, lvl, color_name):
-        code = self._parse_color_name(color_name)
-        self._lvl_colors[lvl] = (color_name, code)
+    def setLevelColor(self, lvl, color):
+        self.levelColors[lvl] = color
 
-    @property
-    def colors(self):
-       return dict((k, self._lvl_colors[k][0]) for k in self._lvl_colors)
+    re_color = re.compile(r'(\#\(([a-zA-Z][a-zA-Z ]*)\))')
 
     def format(self, record):
         txt = super(ColorFormatter, self).format(record)
-        if record.levelno in self._lvl_colors:
-            color = self._lvl_colors[record.levelno][1]
-        else:
-            color = ""
-        txt = txt.replace('$COLOR', color)
-        txt = txt.replace('$ENDCOLOR', "\033[0m")
+        for match in self.re_color.finditer(txt):
+            s, color = match.groups()
+            if color == 'level':
+                color = self.levelColors.get(record.levelno, 'plain')
+            code = self._parse_color_name(color)
+            txt = txt.replace(s, code, 1)
         return txt
 
 
-def patch_logging():
-    """
-    Add SUCCESS and FAILURE log levels to logging.
-    You probably don't want to use this.
-
-    Adds the following:
-        logging.SUCCESS
-        logging.FAILURE
-        logging.Logger.success()
-        logging.Logger.failure()
-
-    Those levels are colored green and red by default by ColorFormatter.
-    They have levels close to INFO and ERROR, respectively.
-    """
-    SUCCESS = 19
-    FAILURE = 39
-
-    def success(self, *args, **kwargs):
-        return self.log(SUCCESS, *args, **kwargs)
-
-    def failure(self, *args, **kwargs):
-        return self.log(FAILURE, *args, **kwargs)
-
-    logging.Logger.success = success
-    logging.Logger.failure = failure
-    logging.addLevelName(SUCCESS, 'SUCCESS')
-    logging.addLevelName(FAILURE, 'FAILURE')
-    logging.SUCCESS = SUCCESS
-    logging.FAILURE = FAILURE
-    ColorFormatter.DEFAULT_LVL_COLORS = {
-        SUCCESS: 'bold green',
-        FAILURE: 'bold red',
-    }
-
-
 if __name__ == '__main__':
-    patch_logging()
     handler = logging.StreamHandler()
-    logger = logging.getLogger()
+    logger = logging.getLogger(__name__)
     logger.addHandler(handler)
     logger.setLevel(logging.DEBUG)
-    formatter = ColorFormatter('%(levelname)s - $COLOR%(message)s$ENDCOLOR')
+    formatter = ColorFormatter()
     handler.setFormatter(formatter)
 
-    logger.success('this should be bold green')
-    logger.failure('this should be bold red')
-    logger.info('this should be gray')
+    logger.debug('#(magenta)this is a magenta debug message#(plain)')
+    logger.info('this is an info message')
+    logger.warn('this is a warning message')
+    logger.error('this is an error message')
+    logger.critical('this is a critical message')
 
-    formatter.setColor(logging.INFO, 'yellow')
-    logger.info('this should be yellow')
-
-    formatter.setColor(logging.SUCCESS, 'underlined cyan')
-    logger.success('this should be underlined cyan')
-
-    formatter.setColor(logging.FAILURE, 'inverted light_magenta')
-    logger.failure('this should look weird')
-
-    formatter.setColor(logging.DEBUG, 'inverted bold blink blue')
-    logger.debug('this might blink')
-
-    from pprint import pprint
-    pprint(formatter.colors)
-
+    formatter.setLevelColor(logging.INFO, 'bold inverted cyan')
+    logger.info('#(blink)this is a funky info message#(plain)')

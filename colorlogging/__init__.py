@@ -1,1 +1,1 @@
-from .core import ColorFormatter, COLORS, patch_logging
+from .core import ColorFormatter
