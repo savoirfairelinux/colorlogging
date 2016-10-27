@@ -1,20 +1,28 @@
 import logging
-import colorlogging
+from colorlogging import ColorFormatter
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 handler = logging.StreamHandler()
 logger.addHandler(handler)
 
-format = "%(asctime)s %(levelname)s: #(magenta)%(message)s#(plain)"
-formatter = colorlogging.ColorFormatter(format)
+fmt = "%(asctime)s %(levelname)s: #(magenta)%(message)s#(plain)"
+formatter = ColorFormatter(fmt)
 handler.setFormatter(formatter)
 
 logger.info('This will be printed in magenta!')
+logger.info('#(underlined green)This message will be underlined and green!')
 
-format = "%(asctime)s #(level)%(levelname)s#(plain): %(message)s"
-formatter = colorlogging.ColorFormatter()
-formatter.setLevelColor(logging.INFO, 'magenta')
+fmt = "%(asctime)s #(level)%(levelname)s#(plain): %(message)s"
+formatter = ColorFormatter(fmt)
+formatter.setLevelColor(logging.INFO, 'inverted light cyan')
 handler.setFormatter(formatter)
+logger.info('Nothing to see, just a humble log message.')
 
-logger.info('#(green)This message will be printed in green!#(plain)')
+formatter = ColorFormatter(additive=True)
+handler.setFormatter(formatter)
+logger.info('#(bold)This is bold. #(blue)This is bold and blue. #(not bold)This is only blue.')
+
+formatter = ColorFormatter()  # additive is False by default
+handler.setFormatter(formatter)
+logger.info('#(bold)This is bold. #(blue)This is only blue, not bold.')
