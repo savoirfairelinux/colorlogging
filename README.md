@@ -145,3 +145,5 @@ continue printing in whatever style was set, past the log line.
 
 * Make ColorFormatter useable with stderr (only problem is that the TTY check is
   currently hardcoded to stdout.)
+* Add background colors
+* Add 88 and 256 color modes
