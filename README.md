@@ -1,5 +1,6 @@
 # colorlogging
-Simple color logging for Python.
+
+Colorful Python logging for Linux shells.
 
 ## Table of Contents
 
@@ -149,3 +150,4 @@ continue printing in whatever style was set, past the log line.
 * Add 88 and 256 color modes
 * Re-implement negative modifiers with no-style code since support for style clear
   codes is really iffy.
+ * Windows support? (Do people use python command line programs on Windows?)
