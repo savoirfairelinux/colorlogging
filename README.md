@@ -147,3 +147,5 @@ continue printing in whatever style was set, past the log line.
   currently hardcoded to stdout.)
 * Add background colors
 * Add 88 and 256 color modes
+* Re-implement negative modifiers with no-style code since support for style clear
+  codes is really iffy.
