@@ -123,8 +123,7 @@ Otherwise, style modifiers clear all previous modifiers. The default is
 formatter = ColorFormatter(additive=True)
 handler.setFormatter(formatter)
 
-logger.info('#(bold)This is bold. #(blue)This is bold and blue. #(not bold)This
-is only blue.')
+logger.info('#(bold)This is bold. #(blue)This is bold and blue. #(not bold)This is blue.')
 
 formatter = ColorFormatter()  # additive is False by default
 handler.setFormatter(formatter)
