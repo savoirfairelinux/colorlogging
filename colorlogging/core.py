@@ -40,8 +40,6 @@ COLOR_CODES = {
     'not hidden': "\033[28m",
     # Synonyms for clearing
     'plain': "\033[0m",
-    'default': "\033[0m",
-    'normal': "\033[0m",
 }
 COLORS = COLOR_CODES.keys()
 IS_TTY = sys.stdout.isatty()

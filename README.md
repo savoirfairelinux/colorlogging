@@ -50,8 +50,8 @@ Format strings are handled as usual (see the Formatter documentation,
 [py3](https://docs.python.org/3/library/logging.html#formatter-objects)),
 with one addition:
 
-Style modifiers, e.g. ``#(bold green)``, are used to color output. The format
-string in the previous example will print log message in magenta.
+Style modifiers like ``#(bold green)``. The format
+string in the previous example will print log messages in magenta.
 
 You can also style a message directly:
 
@@ -79,7 +79,7 @@ where ``style`` and ``color`` are one of the following:
 | [not] blink          | [light] red     |
 | [not] inverted       | [light] green   |
 | [not] hidden         | [light] yellow  |
-| plain/default/normal | [light] blue    |
+| plain                | [light] blue    |
 |                      | [light] magenta |
 |                      | [light] cyan    |
 |                      | level           |
@@ -90,8 +90,7 @@ etc.
 ``red blue`` will parse fine, but you'll just get blue output.  Unfortunately we
 can't do color mixing with shell codes.
 
-``plain``, ``default`` and ``normal`` all mean the same thing, they are just
-synonyms for convenience.  They clear all styles/colors.
+``plain`` clears all styles and colors.
 
 ``level`` is a special color that depends on the log level of the message.  By
 default info is green, warning is yellow, etc.  The most common use case would
