@@ -134,6 +134,9 @@ logger.info('#(bold)This is bold. #(blue)This is only blue, not bold.')
 Negative modifiers, e.g. ``#(not bold)`` can be used in additive mode for
 complex styling.
 
+Note that the negative modifiers do not work correctly in some terminal
+emulators.
+
 ```autoclear```: adds ``#(plain)`` at the end of every message. Defaults to
 ``True``.  If set to ``False`` and ``#(plain)``is omitted, the shell will
 continue printing in whatever style was set, past the log line.
