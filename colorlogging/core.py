@@ -106,7 +106,7 @@ class ColorFormatter(logging.Formatter):
             words = self._join_word(words, 'light')
             words = self._join_word(words, 'not')
             code = ''.join(COLOR_CODES[word] for word in words)
-        except KeyError, IndexError:
+        except (KeyError, IndexError):
             raise ValueError('%s is not an accepted color.' % color_name)
         return code
 
